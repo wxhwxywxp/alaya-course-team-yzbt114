@@ -15,13 +15,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.disable()))
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/hello", "/h2-console/**").permitAll()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/", "/register", "/login", "/css/**", "/h2-console/**").permitAll()
+                        .requestMatchers("/student/**").hasAuthority("STUDENT")
+                        .requestMatchers("/teacher/**").hasAuthority("TEACHER")
+                        .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                        .anyRequest().authenticated()
                 )
-                .formLogin(form -> form.disable());
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/home", true)
+                        .permitAll()
+                )
+                .logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll());
+
         return http.build();
     }
 
